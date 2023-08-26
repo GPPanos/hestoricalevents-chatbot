@@ -1,0 +1,93 @@
+package main
+
+import (
+    "fmt"
+    "github.com/bwmarrin/discordgo"
+    "io/ioutil"
+    "net/http"
+    "strings"
+    "time"
+)
+
+const (
+    Token       = "YOUR_DISCORD_BOT_TOKEN"
+    APIEndpoint = "http://history.muffinlabs.com/date"
+)
+
+func main() {
+    // Create a new Discord session
+    dg, err := discordgo.New("Bot " + Token)
+    if err != nil {
+        fmt.Println("Error creating Discord session: ", err)
+        return
+    }
+
+    // Register a message handler function
+    dg.AddMessageCreateHandler(messageCreate)
+
+    // Open a connection to Discord
+    err = dg.Open()
+    if err != nil {
+        fmt.Println("Error opening connection: ", err)
+        return
+    }
+
+    fmt.Println("Bot is now running. Press Ctrl+C to exit.")
+    select {}
+}
+
+func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+    // Ignore messages from the bot itself
+    if m.Author.ID == s.State.User.ID {
+        return
+    }
+
+    // Check if the message starts with a command prefix (e.g., "!historical")
+    if strings.HasPrefix(m.Content, "!historical") {
+        // Extract the query from the message content
+        query := strings.TrimPrefix(m.Content, "!historical")
+
+        // Query a historical information API
+        historicalInfo, err := getHistoricalInfo()
+        if err != nil {
+            s.ChannelMessageSend(m.ChannelID, "Error fetching historical information.")
+            fmt.Println("Error fetching historical information: ", err)
+            return
+        }
+
+        // Send the historical information as a response
+        s.ChannelMessageSend(m.ChannelID, historicalInfo)
+    }
+}
+
+func getHistoricalInfo() (string, error) {
+    // Make a GET request to the historical information API
+    response, err := http.Get(APIEndpoint)
+    if err != nil {
+        return "", err
+    }
+    defer response.Body.Close()
+
+    // Read the response body
+    body, err := ioutil.ReadAll(response.Body)
+    if err != nil {
+        return "", err
+    }
+
+    // Parse the JSON response
+    // You can use a JSON decoding library here for a more structured approach
+    // For simplicity, we'll use string manipulation to extract the event of the day
+    responseBody := string(body)
+    startIndex := strings.Index(responseBody, `"text"`)
+    if startIndex == -1 {
+        return "", fmt.Errorf("event not found in API response")
+    }
+
+    endIndex := strings.Index(responseBody[startIndex:], `",`) + startIndex
+    if endIndex == -1 {
+        return "", fmt.Errorf("event not found in API response")
+    }
+
+    event := responseBody[startIndex+8 : endIndex]
+
+    return event, nil
