@@ -1,0 +1,28 @@
+ Historical Discord Bot
+
+Overview
+This is a simple Discord bot written in Go that provides historical information based on user queries. The bot queries a historical information API to retrieve an event of the day.
+
+ Usage
+1. Clone the repository.
+2. Replace the placeholder `YOUR_DISCORD_BOT_TOKEN` in the `Token` constant with your Discord bot token.
+3. Run the bot using the command `go run main.go`.
+
+ Dependencies
+- [github.com/bwmarrin/discordgo](https://pkg.go.dev/github.com/bwmarrin/discordgo): DiscordGo is a Go module for interacting with the Discord API.
+  
+ Configuration
+- **Token:** Replace the `YOUR_DISCORD_BOT_TOKEN` constant with your Discord bot token.
+- **APIEndpoint:** The historical information API endpoint is set to [http://history.muffinlabs.com/date](http://history.muffinlabs.com/date).
+
+ Commands
+- `!historical [query]`: Retrieves historical information based on the provided query.
+
+Example
+If a user sends the message `!historical today`, the bot will query the historical information API and respond with an event of the day.
+
+Note
+- This bot is a simple example and may require additional error handling and improvements for production use.
+- The JSON response parsing is done using string manipulation for simplicity. Consider using a JSON decoding library for a more robust solution.
+
+Feel free to contribute and enhance the functionality of this Discord bot!
